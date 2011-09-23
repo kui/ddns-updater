@@ -1,0 +1,167 @@
+#!/bin/sh
+# -*- coding:utf-8 -*-
+
+CMD="curl -s"
+
+DEBUG=true
+DOMAIN="YOUR_DOMAIN"
+PASSWD="YOUR_PASSWORD"
+HOST="YOUR_HOST_NAME"
+INTERVAL="30"
+
+BASE_URL="http://dyn.value-domain.com/cgi-bin/dyn.fcg"
+CONFIG_FILE="/etc/ddns-updater"
+PID_FILE="/var/run/ddns-updater.pid"
+LOG_FILE="/var/log/ddns-updater.log"
+
+[ -e "$CONFIG_FILE" ] && source "$CONFIG_FILE"
+
+URL="http://dyn.value-domain.com/cgi-bin/dyn.fcg?d=$DOMAIN&p=$PASSWD&h=$HOST"
+MAIN_CMD="$CMD $URL"
+
+echo="`which echo`"
+[ -e "$echo" ] || echo="echo"
+p(){
+    $echo "$@"
+}
+d(){
+    $DEBUG && p "$@"
+}
+e(){
+    p "$@" >&2
+}
+
+update(){
+    local result=`$MAIN_CMD`
+    if [ 0 -ne $? ]
+    then
+        e "$result"
+        exit 1
+    fi
+
+    local status=`p "$result" | head -n1 | sed -e 's/^status=//'`
+    local msg=`p "$result" | tail -n1`
+    case $status in
+        0) 
+            d "$msg"
+            return 0
+            ;;
+        1|2|3|4|5|9)
+            e "ERROR: $msg  (status:$status)"
+            d "see http://www.value-domain.com/ddns.php?action=howto" >&2
+            return 1
+            ;;
+        *)
+            e "ERROR: unexpected result. the result is the following"
+            e "$result"
+            return 2
+            ;;
+    esac
+}
+
+start(){
+
+    p -n "start: "
+
+    local pid="`get_pid`"
+    if is_alive_pid "$pid"
+    then
+        e "FAIL"
+        e "already started"
+        exit 1
+    fi
+
+    local pid_file="`dirname $PID_FILE`"
+    [ -e "$pid_file" ] || mkdir -p "$pid_file"
+    local log_file="`dirname $LOG_FILE`"
+    [ -e "$pid_file" ] || mkdir -p "$pid_file"
+    
+    if ! (touch "$LOG_FILE" && touch  "$PID_FILE")
+    then
+        e "FAIL"
+        exit 1
+    fi
+
+    # testing
+    if ! update > /dev/null
+    then
+        e "FAIL"
+        exit 1
+    fi
+
+    p "start" | logger
+    while true
+    do
+        sleep $INTERVAL
+        update 2>&1 | logger
+    done &
+
+    p -n $! > "$PID_FILE"
+
+    p "OK"
+}
+
+stop(){
+
+    p -n "stop: "
+
+    local pid="`get_pid`"
+    if ! is_alive_pid "$pid"
+    then
+        e "FAIL"
+        e "error: not started"
+        exit 1
+    fi
+
+    local retry_count=30
+    while [ $retry_count -gt 0 ]
+    do
+	kill -2 $pid
+	sleep 0.03
+	if ! is_alive_pid $pid
+	then
+	    break
+	fi
+	local retry_count=$(($retry_count-1))
+    done
+
+    if [ $retry_count -eq 0 ] && (! kill -9 $pid)
+    then
+	p "FAIL"
+        p "error: cannot killed $0 (pid:$pid)"
+	exit 1
+    fi
+    p "stop" | logger
+
+    p "OK"
+}
+
+is_alive_pid(){
+    [ -n "$1" ] && [ -n "`ps -p $1 -o comm=`" ]
+}
+
+get_pid(){
+    p `cat "$PID_FILE" 2> /dev/null`
+}
+
+logger(){
+    local datetime="`date +'%F %T'`"
+    sed -e "s/^/$datetime /" >> "$LOG_FILE"
+}
+
+case $1 in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    update)
+        DEBUG=true
+        p "execute \`$MAIN_CMD\`"
+        update
+        ;;
+    *)
+        p "$0 {start|stop|update}"
+        ;;
+esac
