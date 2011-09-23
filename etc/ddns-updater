@@ -1,0 +1,14 @@
+#-*- coding:utf-8 mode:sh -*-
+
+# CMD="/usr/bin/curl"
+
+DEBUG=true
+DOMAIN="your domain"
+PASSWD="your passwd"
+HOST="target host name"
+INTERVAL="60" # sec
+
+# BASE_URL="http://dyn.value-domain.com/cgi-bin/dyn.fcg"
+# CONFIG_FILE="/etc/ddns-updater"
+# PID_FILE="/var/run/ddns-updater.pid"
+# LOG_FILE="/var/log/ddns-updater.log"
