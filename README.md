@@ -1,16 +1,34 @@
-# ddns-updater
+ddns-updater
+=======================
 
-init.d script for DDNS updating
+[バリュードメイン][] の [ダイナミック DNS][] を自動更新するためのスクリプト。
 
-## install
+[バリュードメイン]: http://www.value-domain.com/
+[ダイナミック DNS]: http://www.value-domain.com/ddns.php
 
-### on Debian
+インストール
+--------------------------
+
+Debian (or Ubuntu) でのみ動作を確認している。
 
 ```sh
-$ clone git://github.com/kui/ddns-updater.git
-$ cd ddns-updater
-$ sudo mv ddns-updater /etc/init.d
-$ vim etc/ddns-updater
-$ sudo mv etc/ddns-updater /etc
-$ sudo update-rc.d ddns-updater default 90
+clone git://github.com/kui/ddns-updater.git
+sudo ./ddns-updater/install.sh
+sudo vim /etc/ddns-updater			# DOMAIN, PASSWD, HOST を設定する
+sudo service ddns-updater update	# テスト
+```
+
+使い方
+---------------------
+
+起動:
+
+```sh
+sudo service ddns-updater start
+```
+
+停止:
+
+```sh
+sudo service ddns-updater stop
 ```
