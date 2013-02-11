@@ -137,7 +137,13 @@ do_stop(){
 }
 
 do_status(){
-
+    pid=`get_pid`
+    if is_alive_pid $pid
+    then
+        p "running (pid: $pid)"
+    else
+        p "NOT running"
+    fi
 }
 
 is_alive_pid(){
