@@ -59,7 +59,7 @@ update(){
     esac
 }
 
-start(){
+do_start(){
 
     p -n "start: "
 
@@ -101,7 +101,7 @@ start(){
     p "OK"
 }
 
-stop(){
+do_stop(){
 
     p -n "stop: "
 
@@ -136,6 +136,10 @@ stop(){
     p "OK"
 }
 
+do_status(){
+
+}
+
 is_alive_pid(){
     [ -n "$1" ] && [ -n "`ps -p $1 -o comm=`" ]
 }
@@ -150,11 +154,8 @@ logger(){
 }
 
 case $1 in
-    start)
-        start
-        ;;
-    stop)
-        stop
+    start | stop | status)
+        do_$1
         ;;
     update)
         DEBUG=true
@@ -162,6 +163,6 @@ case $1 in
         update
         ;;
     *)
-        p "$0 {start|stop|update}"
+        p "$0 {start|stop|update|status}"
         ;;
 esac
