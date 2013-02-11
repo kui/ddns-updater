@@ -1,5 +1,16 @@
-#!/bin/bash
+#!/bin/sh
 # -*- coding:utf-8 -*-
+### BEGIN INIT INFO
+# Provides:          ddns-updater
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: update script for DDNS of valude domain
+# Description:       Value Domain の DDNS 更新のための init.d スクリプト
+### END INIT INFO
+
+# Author: Keiichiro Ui
 
 CMD="/usr/bin/curl -s"
 
@@ -7,9 +18,10 @@ DEBUG=true
 DOMAIN="YOUR_DOMAIN"
 PASSWD="YOUR_PASSWORD"
 HOST="YOUR_HOST_NAME"
-INTERVAL="30" #sec
+INTERVAL="120" #sec
 
 BASE_URL="http://dyn.value-domain.com/cgi-bin/dyn.fcg"
+CHECK_IP_URL="http://dyn.value-domain.com/cgi-bin/dyn.fcg?ip"
 CONFIG_FILE="/etc/ddns-updater"
 PID_FILE="/var/run/ddns-updater.pid"
 LOG_FILE="/var/log/ddns-updater.log"
@@ -43,7 +55,8 @@ update(){
     local msg=`p "$result" | tail -n1`
     case $status in
         0)
-            d "$msg"
+            ip="`get_ip_addr`"
+            d "$msg (ip-addr: $ip)"
             return 0
             ;;
         1|2|3|4|5|9)
@@ -92,8 +105,8 @@ do_start(){
     p "start" | logger
     while true
     do
-        sleep $INTERVAL
         update 2>&1 | logger
+        sleep $INTERVAL
     done &
 
     p -n $! > "$PID_FILE"
@@ -159,6 +172,15 @@ logger(){
     sed -e "s/^/$datetime /" >> "$LOG_FILE"
 }
 
+get_ip_addr(){
+    ip=`eval $CMD '$CHECK_IP_URL'`
+
+    [ $? -ne 0 ] && return 1
+    [ -z "$ip" ] && return 1
+
+    p "$ip"
+}
+
 case $1 in
     start | stop | status)
         do_$1
@@ -167,6 +189,9 @@ case $1 in
         DEBUG=true
         p "execute \`$MAIN_CMD\`"
         update
+        ;;
+    ip_addr)
+        get_ip_addr
         ;;
     *)
         p "$0 {start|stop|update|status}"
