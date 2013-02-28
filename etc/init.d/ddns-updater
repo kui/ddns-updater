@@ -106,8 +106,8 @@ do_start(){
     p "start" | logger
     while true
     do
-        update_ip_addr 2>&1 | logger
-        update 2>&1 | logger
+        local s="`update_ip_addr`"
+        ([ -n "s" ] && (p "$s"; update 2>&1)) | logger
         sleep $INTERVAL
     done &
 
@@ -177,7 +177,7 @@ logger(){
 update_ip_addr(){
     local ip_addr="`get_ip_addr`"
     d "IP Adder: $ip_addr"
-    [ "$IP_ADDR" != "$ip_addr" ] && p "IP Adder Updated: $ip_addr"
+    [ "$IP_ADDR" != "$ip_addr" ] && p "IP Adder Updated: $IP_ADDR -> $ip_addr"
     IP_ADDR="$ip_addr"
 }
 
