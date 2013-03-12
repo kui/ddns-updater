@@ -179,10 +179,15 @@ logger(){
 update_ip_addr(){
     local ip_addr="`get_ip_addr`"
     d "IP Adder: $ip_addr"
-    [ "$IP_ADDR" != "$ip_addr" ] && echo "update ip: $ip_addr"
-    local result=$?
+
+    if [ "$IP_ADDR" != "$ip_addr" ]
+    then
+        return 1
+    fi
+
+    echo "update ip: $ip_addr"
     IP_ADDR="$ip_addr"
-    return $result
+    return 0
 }
 
 get_ip_addr(){
