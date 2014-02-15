@@ -1,12 +1,10 @@
 #-*- coding:utf-8 mode:sh -*-
 
-# CMD="/usr/bin/curl"
-
-DEBUG=true
+DEBUG=false
 DOMAIN="your domain"
 PASSWD="your passwd"
 HOST="target host name"
-INTERVAL="60" # sec
+INTERVAL="180" # sec
 
 # BASE_URL="http://dyn.value-domain.com/cgi-bin/dyn.fcg"
 # CONFIG_FILE="/etc/ddns-updater"

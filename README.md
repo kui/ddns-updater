@@ -12,7 +12,7 @@ ddns-updater
 Debian (or Ubuntu) でのみ動作を確認している。
 
 ```sh
-clone git://github.com/kui/ddns-updater.git
+git clone git://github.com/kui/ddns-updater.git
 sudo ./ddns-updater/install.sh
 sudo vim /etc/ddns-updater			# DOMAIN, PASSWD, HOST を設定する
 sudo service ddns-updater update	# テスト

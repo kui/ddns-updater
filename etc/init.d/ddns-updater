@@ -111,7 +111,7 @@ do_start(){
             update 2>&1 | logger
         fi
         sleep $INTERVAL
-    done &
+    done < /dev/null > /dev/null 2>&1 &
 
     p -n $! > "$PID_FILE"
 
